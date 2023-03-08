@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'connective_rect_model.dart';
 
@@ -9,6 +10,17 @@ import 'connective_rect_model.dart';
 // preWork 애니메이션은 최초 빌드시 동작하는 1회성 애니메이션
 // 메인 애니메이션은 List<ConnectiveRectModel> 를 기준으로 자동 연결
 // 추가 옵션필요시 state를 extends하여 사용
+
+class CrawController extends ChangeNotifier {
+  bool waitStartAnim = false;
+
+  Function(int)? _startAnimation;
+
+  forwardMain(int index) {
+    _startAnimation?.call(index);
+  }
+}
+
 class ConnectiveRectAnimationWidget extends StatefulWidget {
   const ConnectiveRectAnimationWidget({
     Key? key,
@@ -16,12 +28,14 @@ class ConnectiveRectAnimationWidget extends StatefulWidget {
     required this.mainModels,
     this.onTap,
     required this.child,
+    this.crawController,
   }) : super(key: key);
 
   final ConnectiveRectModel? preModel;
   final List<ConnectiveRectModel> mainModels;
   final GestureTapCallback? onTap;
   final Widget child;
+  final CrawController? crawController;
 
   @override
   State<ConnectiveRectAnimationWidget> createState() => ConnectiveRectAnimationWidgetState();
@@ -33,7 +47,7 @@ class ConnectiveRectAnimationWidgetState extends State<ConnectiveRectAnimationWi
 
   int get curIndex => _curIndex;
 
-  AnimationController? animPreWorkController;
+  AnimationController? preWorkController;
   Animation<RelativeRect>? preWorkAnimation;
 
   final List<AnimationController> controllers = [];
@@ -43,12 +57,15 @@ class ConnectiveRectAnimationWidgetState extends State<ConnectiveRectAnimationWi
   _setPreWorkAnimation() {
     if (widget.preModel == null) return;
 
-    animPreWorkController = AnimationController(vsync: this, duration: widget.preModel!.duration);
+    preWorkController = AnimationController(vsync: this, duration: widget.preModel!.duration)
+      ..forward();
     preWorkAnimation = widget.preModel!.relativeRectTween
-        .animate(CurvedAnimation(parent: animPreWorkController!, curve: widget.preModel!.curve));
+        .animate(CurvedAnimation(parent: preWorkController!, curve: widget.preModel!.curve));
     preWorkAnimation!.addStatusListener((status) {
-      animPreWorkController?.dispose();
+      preWorkController?.dispose();
+      preWorkController = null;
       preWorkAnimation = null;
+      setState(() {});
     });
   }
 
@@ -83,6 +100,25 @@ class ConnectiveRectAnimationWidgetState extends State<ConnectiveRectAnimationWi
     }
   }
 
+  _startAnimation(int index) {
+    if (mounted) {
+      if (index > widget.mainModels.length - 1) {
+        log('$runtimeType<$hashCode> :: Index Range Error!');
+        return;
+      }
+
+      preWorkController?.reset();
+      for (final c in controllers) {
+        c.reset();
+      }
+      _curIndex = index;
+      controllers[index].forward();
+      setState(() {});
+    } else {
+      log('$runtimeType<$hashCode> :: is not mounted!');
+    }
+  }
+
   @override
   @mustCallSuper
   void initState() {
@@ -90,12 +126,14 @@ class ConnectiveRectAnimationWidgetState extends State<ConnectiveRectAnimationWi
 
     _setPreWorkAnimation();
     _setAnimations();
+
+    widget.crawController?._startAnimation = _startAnimation;
   }
 
   @override
   @mustCallSuper
   void dispose() {
-    animPreWorkController?.dispose();
+    preWorkController?.dispose();
     for (final c in controllers) {
       c.dispose();
     }
@@ -106,11 +144,16 @@ class ConnectiveRectAnimationWidgetState extends State<ConnectiveRectAnimationWi
   @mustCallSuper
   Widget build(BuildContext context) {
     if (widget.mainModels.isEmpty) {
-      log('$runtimeType :: Animation List is Empty Error!');
+      log('$runtimeType<$hashCode> :: Animation List is Empty Error!');
       return widget.child;
     }
 
-    return PositionedTransition(rect: _curAnimation, child: curBody);
+    return ChangeNotifierProvider<CrawController?>(
+      create: (_) => widget.crawController,
+      child: Consumer<CrawController?>(builder: (_, crawController, __) {
+        return PositionedTransition(rect: _curAnimation, child: curBody);
+      }),
+    );
   }
 
   // 현재 위젯 애니메이션 가져오기
@@ -123,7 +166,7 @@ class ConnectiveRectAnimationWidgetState extends State<ConnectiveRectAnimationWi
   Widget get curBody {
     return GestureDetector(
       onTap: () {
-        if (controllers[_curIndex].isAnimating) return;
+        if (controllers[_curIndex].isAnimating || preWorkController?.isAnimating == true) return;
         widget.onTap?.call();
         _curIndex = 0;
         if (_curIndex != 0) setState(() {});

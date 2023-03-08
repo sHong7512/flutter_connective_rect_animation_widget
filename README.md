@@ -1,16 +1,13 @@
 # connective_rect_animation_widget
 
-A new Flutter project.
+## ConnectiveRectAnimationWidget
 
-## Getting Started
+- 각각 애니메이션을 연결해서 구현
+- ConnectiveRectModel 을 기준으로 사용
+- preWork 애니메이션은 최초 빌드시 동작하는 1회성 애니메이션
+- 메인 애니메이션은 List<ConnectiveRectModel> 를 기준으로 자동 연결
+- 추가 옵션필요시 state를 extends하여 사용
 
-This project is a starting point for a Flutter application.
+## AddRotationWidget
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- connective_rect_animation.dart + 회전 애니메이션

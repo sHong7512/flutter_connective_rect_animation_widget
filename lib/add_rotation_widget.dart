@@ -11,6 +11,7 @@ class AddRotationWidget extends ConnectiveRectAnimationWidget {
     required super.mainModels,
     super.onTap,
     required super.child,
+    super.crawController
   });
 
   @override

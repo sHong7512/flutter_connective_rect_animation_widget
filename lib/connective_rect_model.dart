@@ -25,6 +25,9 @@ class ConnectiveRectModel {
   static RelativeRect _rightBottom(double standardWidth, double standardHeight) =>
       RelativeRect.fromLTRB(standardWidth / 1.5, standardHeight / 1.5, 0, 0);
 
+  static RelativeRect _center(double standardWidth, double standardHeight) => RelativeRect.fromLTRB(
+      standardWidth / 2, standardHeight / 2, standardWidth / 2, standardHeight / 2);
+
   static ConnectiveRectModel _first(double standardWidth, double standardHeight) =>
       ConnectiveRectModel(
         relativeRectTween: RelativeRectTween(
@@ -63,6 +66,26 @@ class ConnectiveRectModel {
         ),
         duration: const Duration(milliseconds: 2000),
         curve: Curves.easeIn,
+      );
+
+  static ConnectiveRectModel preWorkGreen(double standardWidth, double standardHeight) =>
+      ConnectiveRectModel(
+        relativeRectTween: RelativeRectTween(
+          begin: _center(standardWidth, standardHeight),
+          end: _leftTop(standardWidth, standardHeight),
+        ),
+        duration: const Duration(milliseconds: 2000),
+        curve: Curves.easeOutBack,
+      );
+
+  static ConnectiveRectModel preWorkRed(double standardWidth, double standardHeight) =>
+      ConnectiveRectModel(
+        relativeRectTween: RelativeRectTween(
+          begin: _center(standardWidth, standardHeight),
+          end: _rightTop(standardWidth, standardHeight),
+        ),
+        duration: const Duration(milliseconds: 2000),
+        curve: Curves.easeOutBack,
       );
 
   static greenModels(double standardWidth, double standardHeight) => <ConnectiveRectModel>[

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:connective_rect_animation_widget/add_rotation_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -5,36 +7,52 @@ import 'connective_rect_animation.dart';
 import 'connective_rect_model.dart';
 
 void main() {
-  runApp(const MaterialApp(
-    home: HomePage(),
-  ));
+  runApp(
+    MaterialApp(home: HomePage()),
+  );
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  HomePage({Key? key}) : super(key: key);
+
+  final greenController = CrawController();
+  final redController = CrawController();
 
   @override
   Widget build(BuildContext context) {
+    final standardWidth = MediaQuery.of(context).size.width;
+    final standardHeight = MediaQuery.of(context).size.height;
     return SafeArea(
       child: Scaffold(
         body: Stack(
           children: [
             ConnectiveRectAnimationWidget(
-              mainModels: ConnectiveRectModel.greenModels(
-                  MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
+              preModel: ConnectiveRectModel.preWorkGreen(standardWidth, standardHeight),
+              mainModels: ConnectiveRectModel.greenModels(standardWidth, standardHeight),
               child: _box(Colors.green),
               onTap: () {
-                print('sHong :: Blue Tap!!');
+                log('sHong :: Blue Tap!!');
               },
+              crawController: greenController,
             ),
             AddRotationWidget(
-              mainModels: ConnectiveRectModel.redModels(
-                  MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
+              preModel: ConnectiveRectModel.preWorkRed(standardWidth, standardHeight),
+              mainModels: ConnectiveRectModel.redModels(standardWidth, standardHeight),
               child: _box(Colors.red),
               onTap: () {
-                print('sHong :: Red Tap!!');
+                log('sHong :: Red Tap!!');
               },
+              crawController: redController,
             ),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  greenController.forwardMain(0);
+                  redController.forwardMain(0);
+                },
+                child: const Text('Main Animation Start'),
+              ),
+            )
           ],
         ),
       ),
@@ -44,7 +62,7 @@ class HomePage extends StatelessWidget {
   _box(Color color) => Container(
         color: color,
         child: const Center(
-          child: Text('Click!'),
+          child: Text('Tap!'),
         ),
       );
 }
